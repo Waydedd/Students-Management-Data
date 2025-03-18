@@ -22,7 +22,38 @@ struct Student {
     }
 };
 
-// Function to add a new student
+// Helper function to load all students from file into a vector
+vector<Student> loadStudents(const string& filename) {
+    vector<Student> students;
+    ifstream file(filename);
+    if (!file) {
+        return students; // Return empty vector if file can't be opened
+    }
+
+    string line;
+    while (getline(file, line)) {
+        Student student;
+        size_t pos = 0;
+        pos = line.find('|');
+        student.id = stoi(line.substr(0, pos));
+        line.erase(0, pos + 1);
+
+        pos = line.find('|');
+        student.name = line.substr(0, pos);
+        line.erase(0, pos + 1);
+
+        pos = line.find('|');
+        student.age = stoi(line.substr(0, pos));
+        line.erase(0, pos + 1);
+
+        student.course = line;
+        students.push_back(student);
+    }
+    file.close();
+    return students;
+}
+
+// Updated function to add a new student with duplicate ID check
 void addStudent(const string& filename) {
     ofstream file(filename, ios::app); // Append mode
     if (!file) {
@@ -34,6 +65,16 @@ void addStudent(const string& filename) {
     cout << "Enter Student ID: ";
     cin >> student.id;
     cin.ignore();
+
+    // Check for duplicate ID
+    vector<Student> existingStudents = loadStudents(filename);
+    for (const auto& s : existingStudents) {
+        if (s.id == student.id) {
+            cout << "Error: Student ID " << student.id << " already exists!" << endl;
+            file.close();
+            return;
+        }
+    }
 
     cout << "Enter Student Name: ";
     getline(cin, student.name);
